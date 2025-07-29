@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "951591786258",
+    "project_id": "pallet-now",
+    "storage_bucket": "pallet-now.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:951591786258:android:1cfeffad74fab33abf45cb",
+        "android_client_info": {
+          "package_name": "com.pallet_now"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "951591786258-cfklocf8sdd3v85n9ok0edbek2he8775.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pallet_now",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "951591786258-b7pk5epluaq68qu5c3f9f2niothurbop.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBx-3k-deGhKEzi7lgsFelIY4xOFE6hxKs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "951591786258-b7pk5epluaq68qu5c3f9f2niothurbop.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
