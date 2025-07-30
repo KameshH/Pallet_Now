@@ -23,6 +23,7 @@ export interface ProductsApiResponse {
 type ProductRequest = {
   page: string;
   pageSize: string;
+  storeLocationId: string;
 };
 
 type ProductsState = ApiResponse<ProductsApiResponse>;

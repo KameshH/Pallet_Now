@@ -1,14 +1,26 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { BarcodeGenerator } from './BarcodeGenerator';
 
 const ProductCard = ({ item }: { item: any }) => {
-  console.log('ProductCard item:', JSON.stringify(item.discount_percent));
-
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const gtin = item?.variants?.[0]?.inventorySync?.gtin;
+
+  const [quantity, setQuantity] = useState(0);
+
+  const handleAdd = () => setQuantity(q => q + 1);
+  const handleRemove = () => setQuantity(q => (q > 0 ? q - 1 : 0));
+
+  const handlecard = () => {
+    navigation.navigate('Cart', {
+      selectedProduct: { ...item, quantity },
+      fallbackImage: fallbackImageRef.current,
+    });
+  };
 
   const fallbackImages = [
     require('../assets/carrrot.png'),
@@ -21,13 +33,16 @@ const ProductCard = ({ item }: { item: any }) => {
     require('../assets/eggplant.png'),
     require('../assets/corn.png'),
   ];
-  const fallbackImage =
-    fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
-
+  const fallbackImageRef = useRef(
+    fallbackImages[Math.floor(Math.random() * fallbackImages.length)],
+  );
   return (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate('ProductDetails', { product: item, fallbackImage })
+        navigation.navigate('ProductDetails', {
+          product: item,
+          fallbackImageRef,
+        })
       }
       style={styles.card}
     >
@@ -42,7 +57,9 @@ const ProductCard = ({ item }: { item: any }) => {
       </View>
       <Image
         source={
-          item?.images?.front ? { uri: item.images.front } : fallbackImage
+          item?.images?.front
+            ? { uri: item.images.front }
+            : fallbackImageRef.current
         }
         style={styles.image}
         resizeMode="contain"
@@ -54,6 +71,29 @@ const ProductCard = ({ item }: { item: any }) => {
         ₹{item.discounted_price}{' '}
         <Text style={styles.originalPrice}>₹{item.original_price}</Text>
       </Text>
+      {gtin && <BarcodeGenerator gtin={gtin} />}
+      <View style={styles.actions}>
+        {quantity === 0 ? (
+          <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+            <Text style={styles.addText}>Add</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.quantityControl}>
+            <TouchableOpacity onPress={handleRemove}>
+              <Text style={styles.qtyBtn}>−</Text>
+            </TouchableOpacity>
+            <Text style={styles.qtyText}>{quantity}</Text>
+            <TouchableOpacity onPress={handleAdd}>
+              <Text style={styles.qtyBtn}>＋</Text>
+            </TouchableOpacity>
+
+            {/* ✅ New Add to Cart Button */}
+            <TouchableOpacity style={styles.cartBtn} onPress={handlecard}>
+              <Text style={styles.cartText}>Cart</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
   );
 };
@@ -122,6 +162,7 @@ const styles = StyleSheet.create({
   quantityControl: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   qtyBtn: {
     fontSize: 18,
@@ -131,6 +172,18 @@ const styles = StyleSheet.create({
   qtyText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  cartBtn: {
+    marginLeft: 12,
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+  },
+  cartText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -9,7 +9,9 @@ type ProductDetailsRouteProp = RouteProp<RootStackParamList, 'ProductDetails'>;
 
 const ProductDetails = () => {
   const route = useRoute<ProductDetailsRouteProp>();
+  const navigation = useNavigation();
   const { product, fallbackImage: routeFallbackImage } = route.params;
+  console.log('ProductDetails product:', JSON.stringify(product));
 
   const [quantity, setQuantity] = useState(0);
   const [selectedWeight, setSelectedWeight] = useState('1 kg');
@@ -25,14 +27,21 @@ const ProductDetails = () => {
     require('../assets/eggplant.png'),
     require('../assets/corn.png'),
   ];
-  const fallbackImage =
+  const fallbackImageRef = useRef(
     routeFallbackImage ||
-    fallbackImages[Math.floor(Math.random() * fallbackImages.length)];
+      fallbackImages[Math.floor(Math.random() * fallbackImages.length)],
+  );
+  const fallbackImage = fallbackImageRef.current;
 
   const handleAdd = () => setQuantity(q => q + 1);
   const handleRemove = () => setQuantity(q => (q > 0 ? q - 1 : 0));
   const totalPrice = (product.discounted_price * quantity).toFixed(2);
-
+  const goToCart = () => {
+    navigation.navigate('Cart', {
+      selectedProduct: { ...product, quantity },
+      fallbackImage,
+    });
+  };
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
@@ -108,6 +117,11 @@ const ProductDetails = () => {
               </View>
             )}
           </View>
+          {quantity > 0 && (
+            <TouchableOpacity style={styles.cartButton} onPress={goToCart}>
+              <Text style={styles.cartButtonText}>Go to Cart</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -347,11 +361,11 @@ const styles = StyleSheet.create({
     right: -6,
   },
   cartButton: {
-    marginTop: 40,
     backgroundColor: '#388e3c',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 16,
   },
   cartButtonText: {
     color: '#fff',

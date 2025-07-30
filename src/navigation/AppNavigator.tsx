@@ -4,12 +4,19 @@ import ProductList from '../component/ProductList';
 import ProductDetails from '../screens/productDetails';
 import LoginScreen from '../screens/LoginScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Cart from '../screens/Cart';
+import type { ImageSourcePropType } from 'react-native';
+import BarcodeScannerScreen from '../screens/BarcodeScanner';
 
 export type RootStackParamList = {
   LoginScreen: undefined;
   ProductList: undefined;
   ProductDetails: { product: any };
-  Cart: { selectedProduct: any };
+  Cart: {
+    selectedProduct: any;
+    fallbackImage?: ImageSourcePropType;
+  };
+  BarcodeScan: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -41,6 +48,12 @@ const AppNavigator = () => {
         name="ProductDetails"
         component={ProductDetails}
         options={{ title: 'Product Details' }}
+      />
+      <Stack.Screen name="Cart" component={Cart} options={{ title: 'cart' }} />
+      <Stack.Screen
+        name="BarcodeScan"
+        component={BarcodeScannerScreen}
+        options={{ title: 'Scan Barcode' }}
       />
     </Stack.Navigator>
   );
