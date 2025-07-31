@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const ProductList = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -24,11 +25,13 @@ const ProductList = () => {
   const { error, data, isLoading } = useSelector(
     (state: RootState) => state.products,
   );
-  console.log('ProductList data:', JSON.stringify(data));
+  const { cart } = useSelector((state: RootState) => state.cart);
 
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => {
     dispatch(
@@ -87,7 +90,7 @@ const ProductList = () => {
   };
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <View
         style={{
           flexDirection: 'row',
@@ -117,7 +120,7 @@ const ProductList = () => {
         keyExtractor={(item, index) =>
           item.id ? `${item.id}-${index}` : `${index}`
         }
-        contentContainerStyle={{ paddingHorizontal: 10 }}
+        contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 100 }}
         renderItem={({ item }: { item: Product }) => (
           <View style={{ flex: 1, margin: 5 }}>
             <ProductCard item={item} />
@@ -132,6 +135,46 @@ const ProductList = () => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
       />
+      {totalCartItems > 0 && (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Cart')}
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            right: 20,
+            backgroundColor: '#4CAF50',
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            justifyContent: 'center',
+            alignItems: 'center',
+            elevation: 8,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+          }}
+        >
+          <MaterialIcons name="shopping-cart" size={28} color="#fff" />
+          <View
+            style={{
+              position: 'absolute',
+              top: -5,
+              right: -5,
+              backgroundColor: '#f44336',
+              borderRadius: 12,
+              minWidth: 24,
+              height: 24,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
+              {totalCartItems > 99 ? '99+' : totalCartItems}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

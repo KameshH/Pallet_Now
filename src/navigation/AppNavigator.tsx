@@ -11,11 +11,12 @@ import BarcodeScannerScreen from '../screens/BarcodeScanner';
 export type RootStackParamList = {
   LoginScreen: undefined;
   ProductList: undefined;
-  ProductDetails: { product: any };
-  Cart: {
-    selectedProduct: any;
+  ProductDetails: {
+    product: any;
     fallbackImage?: ImageSourcePropType;
+    scannedCode?: string;
   };
+  Cart: undefined;
   BarcodeScan: undefined;
 };
 
@@ -42,7 +43,11 @@ const AppNavigator = () => {
       <Stack.Screen
         name="ProductList"
         component={ProductList}
-        options={{ title: 'Products' }}
+        options={{
+          title: 'Products',
+          headerLeft: () => null,
+          headerBackVisible: false,
+        }}
       />
       <Stack.Screen
         name="ProductDetails"

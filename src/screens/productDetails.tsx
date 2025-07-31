@@ -1,20 +1,26 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import type { RouteProp } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../redux/slices/cartSlice';
+import { AppDispatch } from '../redux/store';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Toast from 'react-native-toast-message';
 
 type ProductDetailsRouteProp = RouteProp<RootStackParamList, 'ProductDetails'>;
 
 const ProductDetails = () => {
   const route = useRoute<ProductDetailsRouteProp>();
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch<AppDispatch>();
   const { product, fallbackImage: routeFallbackImage } = route.params;
-  console.log('ProductDetails product:', JSON.stringify(product));
-
-  const [quantity, setQuantity] = useState(0);
-  const [selectedWeight, setSelectedWeight] = useState('1 kg');
+  const [quantity, setQuantity] = useState(product.initialQuantity || 0);
+  const [selectedWeight] = useState('1 kg');
 
   const fallbackImages = [
     require('../assets/carrrot.png'),
@@ -33,14 +39,37 @@ const ProductDetails = () => {
   );
   const fallbackImage = fallbackImageRef.current;
 
-  const handleAdd = () => setQuantity(q => q + 1);
-  const handleRemove = () => setQuantity(q => (q > 0 ? q - 1 : 0));
+  const handleAdd = () => setQuantity((q: number) => q + 1);
+  const handleRemove = () => setQuantity((q: number) => (q > 0 ? q - 1 : 0));
   const totalPrice = (product.discounted_price * quantity).toFixed(2);
-  const goToCart = () => {
-    navigation.navigate('Cart', {
-      selectedProduct: { ...product, quantity },
-      fallbackImage,
-    });
+
+  const handleAddToCart = () => {
+    if (quantity > 0) {
+      dispatch(
+        addToCart({
+          id: product.id,
+          name: product.name,
+          discounted_price: product.discounted_price,
+          original_price: product.original_price,
+          quantity: quantity,
+          images: product.images,
+          main_category: product.main_category,
+          discount_percent: product.discount_percent,
+          fallbackImage: fallbackImage,
+        }),
+      );
+      Toast.show({
+        type: 'success',
+        text1: 'Added to Cart!',
+        text2: `${quantity} ${product.name} added to cart`,
+        position: 'top',
+        visibilityTime: 1500,
+      });
+      setQuantity(0);
+      setTimeout(() => {
+        navigation.navigate('Cart');
+      }, 1000);
+    }
   };
   return (
     <View style={styles.container}>
@@ -118,8 +147,11 @@ const ProductDetails = () => {
             )}
           </View>
           {quantity > 0 && (
-            <TouchableOpacity style={styles.cartButton} onPress={goToCart}>
-              <Text style={styles.cartButtonText}>Go to Cart</Text>
+            <TouchableOpacity
+              style={styles.cartButton}
+              onPress={handleAddToCart}
+            >
+              <Text style={styles.cartButtonText}>Add to Cart</Text>
             </TouchableOpacity>
           )}
         </View>

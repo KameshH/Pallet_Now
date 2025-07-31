@@ -1,23 +1,62 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { BarcodeGenerator } from './BarcodeGenerator';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../redux/slices/cartSlice';
+import { AppDispatch } from '../redux/store';
+import Toast from 'react-native-toast-message';
 
 const ProductCard = ({ item }: { item: any }) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const dispatch = useDispatch<AppDispatch>();
   const gtin = item?.variants?.[0]?.inventorySync?.gtin;
 
   const [quantity, setQuantity] = useState(0);
 
+  useFocusEffect(
+    useCallback(() => {
+      setQuantity(0);
+    }, []),
+  );
+
   const handleAdd = () => setQuantity(q => q + 1);
   const handleRemove = () => setQuantity(q => (q > 0 ? q - 1 : 0));
 
-  const handlecard = () => {
-    navigation.navigate('Cart', {
-      selectedProduct: { ...item, quantity },
+  const handleAddToCart = () => {
+    if (quantity > 0) {
+      dispatch(
+        addToCart({
+          id: item.id,
+          name: item.name,
+          discounted_price: item.discounted_price,
+          original_price: item.original_price,
+          quantity: quantity,
+          images: item.images,
+          main_category: item.main_category,
+          discount_percent: item.discount_percent,
+          fallbackImage: fallbackImageRef.current,
+        }),
+      );
+
+      Toast.show({
+        type: 'success',
+        text1: 'Added to Cart!',
+        text2: `${quantity} ${item.name} added to cart`,
+        position: 'top',
+        visibilityTime: 1500,
+      });
+
+      setQuantity(0);
+    }
+  };
+
+  const handleCardPress = () => {
+    navigation.navigate('ProductDetails', {
+      product: { ...item, initialQuantity: quantity },
       fallbackImage: fallbackImageRef.current,
     });
   };
@@ -37,15 +76,7 @@ const ProductCard = ({ item }: { item: any }) => {
     fallbackImages[Math.floor(Math.random() * fallbackImages.length)],
   );
   return (
-    <TouchableOpacity
-      onPress={() =>
-        navigation.navigate('ProductDetails', {
-          product: item,
-          fallbackImageRef,
-        })
-      }
-      style={styles.card}
-    >
+    <TouchableOpacity onPress={handleCardPress} style={styles.card}>
       <View style={styles.discountTag}>
         <Text style={styles.discountText}>
           {typeof item.discount_percent === 'number' &&
@@ -71,7 +102,9 @@ const ProductCard = ({ item }: { item: any }) => {
         ₹{item.discounted_price}{' '}
         <Text style={styles.originalPrice}>₹{item.original_price}</Text>
       </Text>
-      {gtin && <BarcodeGenerator gtin={gtin} />}
+      <View style={styles.barcodeContainer}>
+        {gtin && <BarcodeGenerator gtin={gtin} />}
+      </View>
       <View style={styles.actions}>
         {quantity === 0 ? (
           <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
@@ -86,9 +119,7 @@ const ProductCard = ({ item }: { item: any }) => {
             <TouchableOpacity onPress={handleAdd}>
               <Text style={styles.qtyBtn}>＋</Text>
             </TouchableOpacity>
-
-            {/* ✅ New Add to Cart Button */}
-            <TouchableOpacity style={styles.cartBtn} onPress={handlecard}>
+            <TouchableOpacity style={styles.cartBtn} onPress={handleAddToCart}>
               <Text style={styles.cartText}>Cart</Text>
             </TouchableOpacity>
           </View>
@@ -184,6 +215,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 12,
+  },
+  barcodeContainer: {
+    marginBottom: 10,
   },
 });
 
